@@ -8,6 +8,10 @@
 #pragma resource "*.dfm"
 
 
+/*
+*	∏Æ∆—≈‰∏µ : 2024.02
+*
+*/
 TMainForm *MainForm;
 
 __fastcall TMainForm::TMainForm(TComponent* Owner) : TForm(Owner) {
