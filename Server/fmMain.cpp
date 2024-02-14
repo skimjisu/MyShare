@@ -418,17 +418,18 @@ void __fastcall TMainForm::Btn_DeleteDirClick(TObject *Sender) {
 * @param RootNode: 하위 노드를 삭제할 루트 노드입니다.
 */
 void __fastcall TMainForm::DeleteSubNodes(TTreeNode *RootNode) {
-	for (int i = RootNode->Count - 1; i >= 0; --i) {
-		TTreeNode *Node = RootNode->Item[i];
+	for (int i = RootNode->Count - 1; i >= 0; --i) { // 루트 노드의 하위 노드들을 역순으로 순회합니다.
+		TTreeNode *Node = RootNode->Item[i]; // 현재 순회 중인 노드를 Node로 설정합니다.
 		// 레벨이 1인 노드를 삭제합니다.
-		if (Node->Level == 1) {
-			TShereItem *Item = (TShereItem*)Node->Data;
-			Container->DeleteItem(Item->Name, Item);
-			Shere_ini->DeleteKey(Node->Parent->Text, Node->Text);
-			Node->Delete();
+		if (Node->Level == 1) { // Node의 레벨이 1인 경우
+			TShereItem *Item = (TShereItem*)Node->Data; // Node의 데이터를 TShereItem 형으로 변환하여 Item으로 설정합니다.
+			Container->DeleteItem(Item->Name, Item); // Item을 삭제합니다.
+			Shere_ini->DeleteKey(Node->Parent->Text, Node->Text); // Shere_ini에서 Node에 해당하는 키를 삭제합니다.
+			Node->Delete(); // Node를 삭제합니다.
 		}
 	}
 }
+
 
 /*
 * 멤버 함수: N1Click
@@ -436,7 +437,11 @@ void __fastcall TMainForm::DeleteSubNodes(TTreeNode *RootNode) {
 * @param Sender: 메뉴 클릭 이벤트를 발생시킨 객체입니다.
 */
 void __fastcall TMainForm::N1Click(TObject *Sender) {
+    /*
+    * TTreeNode *Node: 선택된 노드를 참조하는 포인터입니다.
+    */
 	TTreeNode *Node = TV_ShereList->Selected;
+    // 선택된 노드에 파일을 추가합니다.
 	AddShereFile(Node);
 }
 
@@ -446,27 +451,44 @@ void __fastcall TMainForm::N1Click(TObject *Sender) {
 * @param Node: 파일을 추가할 노드입니다.
 */
 void __fastcall TMainForm::AddShereFile(TTreeNode *Node) {
+    // Node가 NULL 이거나 Node의 레벨이 0이 아니라면 함수를 종료합니다.
 	if (Node == NULL || Node->Level != 0)
 		return;
+    // 파일 선택 다이얼로그를 열지 못했다면 함수를 종료합니다.
 	if (!OpenDialog1->Execute())
 		return;
 	// UI 업데이트 및 파일 처리
+    // 작업 상태를 표시합니다.
 	LB_WorkName->Caption = "파일 추가 중...";
+    // 대기 중인 작업을 실행합니다.
 	WorkForWait(true);
+    // 노드 목록 업데이트를 시작합니다.
 	TV_ShereList->Items->BeginUpdate();
 
+    // 선택된 모든 파일에 대해
 	for (int i = 0; i < OpenDialog1->Files->Count; i++) {
+        /*
+        * AnsiString filePath: 선택된 파일의 경로를 저장하는 변수입니다.
+        */
 		AnsiString filePath = OpenDialog1->Files->Strings[i];
+        // 파일이 이미 노드에 포함되어 있지 않다면
 		if (!IsInItem(Node, filePath)) {
+            // 파일 처리를 수행합니다.
 			ProcessFile(filePath, Node);
 		}
+        // 기타 메시지 처리를 수행합니다.
 		Application->ProcessMessages();
 	}
+    // 노드를 확장합니다.
 	Node->Expand(true);
+    // 노드 목록 업데이트를 종료합니다.
 	TV_ShereList->Items->EndUpdate();
+    // 대기 중인 작업을 종료합니다.
 	WorkForWait(false);
+    // 해싱 상태를 false로 설정합니다.
 	IS_Hashed = false;
 }
+
 
 /*
 * 멤버 함수: ProcessFile
