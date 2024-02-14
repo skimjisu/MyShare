@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899-12-30 00:00:00.000.663,C:\Users\Administrator\Desktop\MyShere\Server\Project1PCH1.h=C:\Users\Administrator\Documents\RAD Studio\Projects\Project1PCH1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.004,C:\Users\Administrator\Desktop\MyShere\Server\fmMakeDir.h=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.004,C:\Users\Administrator\Desktop\MyShere\Server\fmMakeDir.dfm=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.195,C:\Users\Administrator\Desktop\MyShere\Server\Container.cpp=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.063,C:\Users\Administrator\Desktop\MyShere\Server\Unit1.h=C:\Users\Administrator\Desktop\MyShere\Server\ServerProce.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.956,C:\Users\Administrator\Desktop\MyShere\Server\fmMain.h=C:\Users\Administrator\Documents\RAD Studio\Projects\Unit1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.558,=C:\Users\Administrator\Desktop\MyShere\Common.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.956,C:\Users\Administrator\Desktop\MyShere\Server\fmMain.dfm=C:\Users\Administrator\Documents\RAD Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.355,=C:\Users\Administrator\Desktop\MyShere\ThreadHttpDownloader.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.283,C:\Users\Administrator\Desktop\MyShere\ThreadHttpDownloader.cpp=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.210,=C:\Users\Administrator\Documents\RAD Studio\Projects\Project1PCH1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.169,C:\Users\Administrator\Desktop\MyShere\Server\MyShereServer.cbproj=C:\Users\Administrator\Desktop\MyShere\Server\Project1.cbproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.956,C:\Users\Administrator\Desktop\MyShere\Server\fmMain.cpp=C:\Users\Administrator\Documents\RAD Studio\Projects\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.236,=C:\Users\Administrator\Documents\RAD Studio\Projects\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.697,=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.751,=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.681,=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.518,C:\Users\Administrator\Desktop\MyShere\Server\UrlProce.pas=</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.062,C:\Users\Administrator\Desktop\MyShere\Server\Unit1.cpp=C:\Users\Administrator\Desktop\MyShere\Server\ServerProce.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.923,=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.195,C:\Users\Administrator\Desktop\MyShere\Server\Container.h=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.280,=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.pas</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.971,=C:\Users\Administrator\Desktop\MyShere\SystemIconProce.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.004,C:\Users\Administrator\Desktop\MyShere\Server\fmMakeDir.cpp=C:\Users\Administrator\Desktop\MyShere\Server\Unit1.cpp</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.946,C:\Users\Administrator\Desktop\MyShere\Server\Project1.cbproj=C:\Users\Administrator\Documents\RAD Studio\Projects\Project1.cbproj</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.142,C:\Users\Administrator\Desktop\MyShere\Server\MyShereServerPCH1.h=C:\Users\Administrator\Desktop\MyShere\Server\Project1PCH1.h</Transaction>
+    <Transaction>1899-12-30 00:00:00.000.374,C:\Users\Administrator\Desktop\MyShere\Server\Unit1.pas=C:\Users\Administrator\Desktop\MyShere\Server\UrlProce.pas</Transaction>
+  </Transactions>
+</BorlandProject>

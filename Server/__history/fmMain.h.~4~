@@ -1,0 +1,151 @@
+#ifndef fmMainH
+#define fmMainH
+
+#include <System.Classes.hpp>
+#include <Vcl.Controls.hpp>
+#include <Vcl.StdCtrls.hpp>
+#include <System.StrUtils.hpp>
+
+#include <Vcl.Forms.hpp>
+#include <IdBaseComponent.hpp>
+#include <IdComponent.hpp>
+#include <IdCustomHTTPServer.hpp>
+#include <IdCustomTCPServer.hpp>
+#include <IdHTTPServer.hpp>
+#include <IdScheduler.hpp>
+#include <IdSchedulerOfThread.hpp>
+#include <IdSchedulerOfThreadDefault.hpp>
+#include <Vcl.ComCtrls.hpp>
+#include <Vcl.ImgList.hpp>
+
+#include <Vcl.Menus.hpp>
+#include <Vcl.ExtCtrls.hpp>
+#include <Vcl.Dialogs.hpp>
+#include <Vcl.Imaging.GIFImg.hpp>
+#include <IniFiles.hpp>
+
+#include <Web.HTTPApp.hpp>
+
+
+#include "fmMakeDir.h"
+
+#include "..\SystemIconProce.h"
+#include "..\Common.h"
+#include "Container.h"
+
+
+#define		INI_SHERE_LIST_NAME			"Shere_Name_List"
+#define		INI_FILE_HASH_DONE_NAME		"Hash_done_List"
+
+
+
+#define MIN_SHERE_FILE_SIZE					10				// 한개의 파일의 공유 최소 사이즈
+#define MAX_SHERE_FILE_SIZE					68719475199LL	 	// 한개의 파일의 공유 최대 사이즈 68719475199 : 68기가
+
+
+#define BUFSIZE 4096
+#define MD5LEN  16
+
+char rgbDigits[] = "0123456789abcdef";
+
+const char *WEB_FILE_LIST[] = {
+	"index.html",
+	"shere_list_tmpl.html",
+	"shere_list_item_tmpl.html",
+	NULL
+};
+
+
+class TMainForm : public TForm
+{
+__published:	// IDE-managed Components
+	TPageControl *PageControl1;
+	TIdHTTPServer *HTTPS;
+	TImageList *IconRes;
+	TIdSchedulerOfThreadDefault *IdSchedulerOfThreadDefault1;
+	TOpenDialog *OpenDialog1;
+	TPopupMenu *PopupMenu1;
+	TMenuItem *N1;
+	TMenuItem *N4;
+	TPopupMenu *PopupMenu2;
+	TMenuItem *N5;
+	TMenuItem *N7;
+	TTabSheet *TabSheet1;
+	TTimer *WorkTimer;
+	TPanel *Panel1;
+	TLabel *Label2;
+	TPanel *Panel2;
+	TButton *Btn_DeleteDir;
+	TButton *Btn_MakeDir;
+	TPanel *Panel4;
+	TButton *Btn_Shere;
+	TPanel *Panel3;
+	TLabel *LB_WorkName;
+	TImage *Image1;
+	TPanel *PN_WorkProce;
+	TLabel *Label3;
+	TLabel *LB_Percent;
+	TLabel *Label5;
+	TLabel *LB_NowFileName;
+	TProgressBar *PB_Total;
+	TButton *Btn_HashCencel;
+	TStatusBar *StatusBar1;
+	TTabSheet *TabSheet2;
+	TMemo *Memo1;
+	TTreeView *TV_ShereList;
+	void __fastcall HTTPSCommandGet(TIdContext *AContext, TIdHTTPRequestInfo *ARequestInfo,
+          TIdHTTPResponseInfo *AResponseInfo);
+	void __fastcall FormCreate(TObject *Sender);
+	void __fastcall FormDestroy(TObject *Sender);
+	void __fastcall Btn_MakeDirClick(TObject *Sender);
+	void __fastcall TV_ShereListMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift,
+          int X, int Y);
+	void __fastcall TV_ShereListChange(TObject *Sender, TTreeNode *Node);
+	void __fastcall TV_ShereListEditing(TObject *Sender, TTreeNode *Node, bool &AllowEdit);
+	void __fastcall Btn_DeleteDirClick(TObject *Sender);
+	void __fastcall N1Click(TObject *Sender);
+	void __fastcall N5Click(TObject *Sender);
+	void __fastcall TV_ShereListKeyDown(TObject *Sender, WORD &Key, TShiftState Shift);
+	void __fastcall Btn_ShereClick(TObject *Sender);
+	void __fastcall FormResize(TObject *Sender);
+	void __fastcall WorkTimerTimer(TObject *Sender);
+
+	void __fastcall TotalWorkProce();
+	void __fastcall Btn_HashCencelClick(TObject *Sender);
+
+
+
+
+private:	// User declarations
+
+	TContainer *Container;
+
+	TExtIconList *SysIconList;
+
+	TIniFile *Shere_ini;
+
+	bool IS_Hashed,IS_Shering,IS_HashCencel;
+
+	__int64 TotalFileSize,EndPos;
+
+
+public:		// User declarations
+	__fastcall TMainForm(TComponent* Owner);
+	void __fastcall Load_INI();
+
+	TTreeNode * __fastcall AddRootNode(TTreeView *GroupList,AnsiString Name,bool WriteINI);
+	void __fastcall WorkForWait(bool wait);
+
+	void __fastcall AddSubNode(TTreeView *GroupList,TTreeNode *RootNode,AnsiString FileName, TObject *Item,__int64 FileSize,bool WriteINI);
+
+	bool __fastcall IsInItem(TTreeNode *Node,AnsiString Name);
+	void __fastcall AddShereFile(TTreeNode *Node);
+	void __fastcall DeleteShere(TObject *Sender);
+	AnsiString __fastcall GetMD5HashProce(AnsiString FileName);
+	bool __fastcall HashingProce();
+
+};
+
+extern PACKAGE TMainForm *MainForm;
+
+#endif

@@ -1,0 +1,24 @@
+Functions called:
+ fflush (4 times)
+ delete (21 times)
+ memset (1 times)
+ SysReallocMem (1017 times)
+ SysAllocMem (12 times)
+ SysFreeMem (6240 times)
+ SysGetMem (6293 times)
+ strdup (4 times)
+ free (20 times)
+ _lsetlocale (6 times)
+ strlen (6 times)
+ new (31 times)
+ calloc (9 times)
+ realloc (1 times)
+ malloc (6 times)
+ memcpy (11 times)
+Resource types used:
+ object (31 allocs, 31 max)
+ memory block (6325 allocs, 1451 max)
+Modules used:
+ 00400000 03/07/2014 13:58:00 D:\Dev
+ Files\MyShere\Downloader\Win32\Release\Downloader.exe
+==========================================

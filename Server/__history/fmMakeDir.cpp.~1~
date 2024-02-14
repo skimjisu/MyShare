@@ -1,0 +1,38 @@
+#include <vcl.h>
+#pragma hdrstop
+
+#include "fmMakeDir.h"
+
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+
+TMakeDirForm *MakeDirForm;
+
+__fastcall TMakeDirForm::TMakeDirForm(TComponent* Owner)	: TForm(Owner){
+}
+
+void __fastcall TMakeDirForm::FormCreate(TObject *Sender){
+	IS_OK = false;
+}
+
+void __fastcall TMakeDirForm::Button1Click(TObject *Sender){
+	IS_OK = true;
+	this->Close();
+
+}
+
+void __fastcall TMakeDirForm::Button2Click(TObject *Sender){
+	IS_OK = false;
+	this->Close();
+
+}
+
+
+void __fastcall TMakeDirForm::Edit1KeyPress(TObject *Sender, System::WideChar &Key){
+	if(Key == 13)Button1Click(this);
+	if(Key == 27){
+		Key = 0;
+		Button2Click(this);
+	}
+}
+

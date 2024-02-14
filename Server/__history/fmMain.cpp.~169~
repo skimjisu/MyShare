@@ -1,0 +1,565 @@
+#include <vcl.h>
+#pragma hdrstop
+
+#include "fmMain.h"
+
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+
+TMainForm *MainForm;
+
+__fastcall TMainForm::TMainForm(TComponent* Owner) : TForm(Owner) {
+	IS_Hashed = true;
+	IS_Shering = false;
+	this->Width = 800;
+
+}
+
+void __fastcall TMainForm::FormCreate(TObject *Sender) {
+
+	try {
+		Shere_ini = new TIniFile(ExtractFilePath(ParamStr(0)) + "ShereInfo.ini");
+	}
+	catch (...) {
+		return;
+	}
+
+	Container = new TContainer;
+
+	// try {		HTTPS->Active = true;	} catch (...) {	}
+
+	SysIconList = new TExtIconList;
+	TV_ShereList->Images = SysIconList->IconList;
+	// TV_ShereList->Images = IconRes;
+
+	TIcon *icon = new TIcon;
+	IconRes->GetIcon(0, icon);
+	SysIconList->AddCustomSystemIcon("__Directory", icon);
+	delete icon;
+
+	icon = new TIcon;
+	IconRes->GetIcon(1, icon);
+	SysIconList->AddCustomSystemIcon("__Directory_Open", icon);
+	delete icon;
+
+	Load_INI();
+	LB_WorkName->Caption = "";
+	LB_Percent->Caption = "";
+	LB_NowFileName->Caption = "";
+
+	if (!IS_Shering)
+		Btn_Shere->Caption = "공유시작";
+	else
+		Btn_Shere->Caption = "공유중지";
+
+	WorkForWait(false);
+	PN_WorkProce->Visible = false;
+
+	// Btn_ShereClick(this);
+}
+
+void __fastcall TMainForm::FormDestroy(TObject *Sender) {
+	delete Container;
+	delete Shere_ini;
+	delete SysIconList;
+}
+
+void __fastcall TMainForm::Load_INI() {
+
+	TV_ShereList->Items->Clear();
+	Container->ClearShereList();
+
+	TStringList *List = new TStringList;
+	TStringList *ItemList = new TStringList;
+
+	Shere_ini->ReadSection(INI_SHERE_LIST_NAME, List);
+
+	for (int i = 0; i < List->Count; i++) {
+		TTreeNode *RootNode = AddRootNode(TV_ShereList, List->Strings[i], false);
+		ItemList->Clear();
+		Shere_ini->ReadSection(List->Strings[i], ItemList);
+		for (int j = 0; j < ItemList->Count; j++) {
+			if (FileExists(ItemList->Strings[j])) {
+				__int64 FileSize = 0;
+				if (TryStrToInt64(Shere_ini->ReadString(List->Strings[i], ItemList->Strings[j], "0"), FileSize)) {
+					AnsiString MD5 = Shere_ini->ReadString(INI_FILE_HASH_DONE_NAME, ItemList->Strings[j], "");
+					if (MD5 == "")
+						IS_Hashed = false;
+					TShereItem *Item = new TShereItem(List->Strings[i], ItemList->Strings[j], MD5, FileSize);
+					Container->AddItem(List->Strings[i], Item);
+					AddSubNode(TV_ShereList, RootNode, ItemList->Strings[j], Item, 0, false);
+				}
+				else {
+					FileSize = 0;
+					Shere_ini->DeleteKey(List->Strings[i], ItemList->Strings[j]);
+					Shere_ini->DeleteKey(INI_FILE_HASH_DONE_NAME, ItemList->Strings[j]);
+				}
+			}
+			else {
+				Shere_ini->DeleteKey(List->Strings[i], ItemList->Strings[j]);
+				Shere_ini->DeleteKey(INI_FILE_HASH_DONE_NAME, ItemList->Strings[j]);
+			}
+		}
+	}
+	delete ItemList;
+	delete List;
+
+}
+
+void __fastcall TMainForm::WorkForWait(bool wait) {
+	Panel3->Visible = wait;
+	try {
+		((TGIFImage*)Image1->Picture->Graphic)->Animate = wait;
+	}
+	catch (...) {
+	}
+}
+
+TTreeNode * __fastcall TMainForm::AddRootNode(TTreeView *GroupList, AnsiString Name, bool WriteINI) {
+	TTreeNode *Item = GroupList->Items->Add(NULL, Name);
+	Item->ImageIndex = this->SysIconList->IsInExtSystemIcon("__Directory");
+	Item->SelectedIndex = this->SysIconList->IsInExtSystemIcon("__Directory_Open");
+	if (WriteINI)
+		Shere_ini->WriteBool(INI_SHERE_LIST_NAME, Name, true);
+	return Item;
+}
+
+void __fastcall TMainForm::AddSubNode(TTreeView *GroupList, TTreeNode *RootNode, AnsiString FileName, TObject *Item,
+	__int64 FileSize, bool WriteINI) {
+	if (RootNode != NULL) {
+		TTreeNode *SubNode = GroupList->Items->AddChildObject(RootNode, FileName, Item);
+		AnsiString Ext = ExtractFileExt(FileName);
+		int i = this->SysIconList->IsInExtSystemIcon(Ext);
+		if (i != 0) {
+			SubNode->ImageIndex = i;
+			SubNode->SelectedIndex = i;
+		}
+		else {
+			i = this->SysIconList->AddExtSystemIcon(Ext);
+			SubNode->ImageIndex = i;
+			SubNode->SelectedIndex = i;
+		}
+	}
+	if (WriteINI)
+		Shere_ini->WriteString(RootNode->Text, FileName, IntToStr(FileSize));
+}
+
+void __fastcall TMainForm::Btn_MakeDirClick(TObject *Sender) {
+	MakeDirForm->IS_OK = false;
+	MakeDirForm->Edit1->Text = "";
+	MakeDirForm->ShowModal();
+	AnsiString stTemp = MakeDirForm->Edit1->Text.Trim();
+	if (MakeDirForm->IS_OK && stTemp.Length() > 0) {
+		for (int i = 0; i < TV_ShereList->Items->Count; i++) {
+			TTreeNode *Node = (TTreeNode*)TV_ShereList->Items->Item[i];
+			if (Node->Text == stTemp) {
+				ShowMessage("이미 있는 공유이름 입니다.");
+				return;
+			}
+		}
+		AddRootNode(TV_ShereList, MakeDirForm->Edit1->Text, true);
+	}
+}
+
+bool __fastcall TMainForm::IsInItem(TTreeNode *Node, AnsiString Name) {
+	for (int i = 0; i < Node->Count; i++) {
+		if (Node->Item[i]->Text == Name)
+			return true;
+	}
+	return false;
+}
+
+void __fastcall TMainForm::TV_ShereListMouseDown(TObject *Sender, TMouseButton Button, TShiftState Shift, int X, int Y) {
+	TTreeView *p = (TTreeView*)Sender;
+	TTreeNode *Node = p->GetNodeAt(X, Y);
+	if (Node == NULL)
+		return;
+	Node->Selected = true;
+	if (Button != mbRight)
+		return;
+
+	if (Node->Level == 0) {
+		N1->Caption = Node->Text + " 공유에 파일추가....";
+		this->PopupMenu1->Popup(((TPoint)Mouse->CursorPos).X, ((TPoint)Mouse->CursorPos).Y);
+	}
+
+	else if (p->SelectionCount >= 1) {
+		int SCount = 0;
+		for (unsigned int i = 0; i < p->SelectionCount; i++) {
+			if (p->Selections[i]->Level == 1) {
+				SCount++;
+			}
+		}
+		N5->Caption = IntToStr(SCount) + " 개 항목 삭제....";
+		this->PopupMenu2->Popup(((TPoint)Mouse->CursorPos).X, ((TPoint)Mouse->CursorPos).Y);
+	}
+}
+
+void __fastcall TMainForm::TV_ShereListChange(TObject *Sender, TTreeNode *Node) {
+	if (Node->Level == 0) {
+		Btn_DeleteDir->Enabled = true;
+		TV_ShereList->MultiSelect = false;
+	}
+	else {
+		Btn_DeleteDir->Enabled = false;
+		TV_ShereList->MultiSelect = true;
+	}
+}
+
+void __fastcall TMainForm::TV_ShereListEditing(TObject *Sender, TTreeNode *Node, bool &AllowEdit) {
+	AllowEdit = false;
+}
+
+void __fastcall TMainForm::Btn_DeleteDirClick(TObject *Sender) {
+
+	if (TV_ShereList->Selected == NULL)
+		return;
+
+	if (TV_ShereList->Selected->Level == 0) {
+		AnsiString stTemp = TV_ShereList->Selected->Text + " 공유를 삭제 하시겠습니까?";
+		if (MessageBoxA(this->Handle, stTemp.c_str(), "확인", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+
+			TTreeNode *RootNode = TV_ShereList->Selected;
+			for (int i = RootNode->Count - 1; i >= 0; --i) {
+				TTreeNode *Node = RootNode->Item[i];
+				if (Node->Level == 1) {
+					TShereItem *Item = (TShereItem*)Node->Data;
+					Container->DeleteItem(Item->Name, Item);
+					Shere_ini->DeleteKey(Node->Parent->Text, Node->Text);
+					Node->Delete();
+				}
+			}
+
+			Container->DeleteShereListFromName(RootNode->Text);
+			Shere_ini->DeleteKey(INI_SHERE_LIST_NAME, RootNode->Text);
+			Shere_ini->EraseSection(RootNode->Text);
+			TV_ShereList->Selected->Delete();
+		}
+	}
+}
+
+void __fastcall TMainForm::N1Click(TObject *Sender) {
+	TTreeNode *Node = TV_ShereList->Selected;
+	AddShereFile(Node);
+}
+
+void __fastcall TMainForm::AddShereFile(TTreeNode *Node) {
+	// TTreeNode *Node = TreeView1->Selected;
+	if (Node == NULL || Node->Level != 0)
+		return;
+	if (!OpenDialog1->Execute())
+		return;
+	LB_WorkName->Caption = "파일추가중...";
+	WorkForWait(true);
+	TV_ShereList->Items->BeginUpdate();
+	for (int i = 0; i < OpenDialog1->Files->Count; i++) {
+		__int64 FileSize;
+		AnsiString stTemp = OpenDialog1->Files->Strings[i];
+		if (!IsInItem(Node, stTemp)) {
+			if (FileExists(stTemp)) {
+				FileSize = GetLocalFileSize(stTemp);
+				if (FileSize >= MIN_SHERE_FILE_SIZE && FileSize < MAX_SHERE_FILE_SIZE) {
+					TShereItem *Item = new TShereItem(Node->Text, stTemp, Shere_ini->ReadString(INI_FILE_HASH_DONE_NAME, stTemp,
+						""), FileSize);
+					Container->AddItem(Item->Name, Item);
+					AddSubNode(TV_ShereList, Node, stTemp, Item, FileSize, true);
+				}
+			}
+		}
+		Application->ProcessMessages();
+	}
+	Node->Expand(true);
+	TV_ShereList->Items->EndUpdate();
+	WorkForWait(false);
+	IS_Hashed = false;
+}
+
+void __fastcall TMainForm::DeleteShere(TObject *Sender) {
+	for (int i = TV_ShereList->SelectionCount - 1; i >= 0; --i) {
+		TTreeNode *Node = TV_ShereList->Selections[i];
+		if (Node->Level == 1) {
+			TShereItem *Item = (TShereItem*)Node->Data;
+			Container->DeleteItem(Item->Name, Item);
+			Shere_ini->DeleteKey(Node->Parent->Text, Node->Text);
+			Node->Delete();
+		}
+	}
+}
+
+void __fastcall TMainForm::N5Click(TObject *Sender) {
+	DeleteShere(Sender);
+}
+
+void __fastcall TMainForm::TV_ShereListKeyDown(TObject *Sender, WORD &Key, TShiftState Shift) {
+	if (Key == VK_DELETE) {
+		TTreeView *p = (TTreeView*)Sender;
+		// if(((TTreeNode*)p->Selected)->Level == 0)return;
+		if (p->SelectionCount >= 1) {
+			int SCount = 0;
+			for (unsigned int i = 0; i < p->SelectionCount; i++)
+				if (p->Selections[i]->Level == 1)
+					SCount++;
+			AnsiString stTemp = IntToStr(SCount) + " 개의 항목을 삭제 하시겠습니까?";
+			if (MessageBoxA(this->Handle, stTemp.c_str(), "확인", MB_YESNO | MB_ICONQUESTION) == IDYES) {
+				DeleteShere(Sender);
+			}
+		}
+	}
+}
+
+void __fastcall TMainForm::Btn_ShereClick(TObject *Sender) {
+
+	if (IS_Shering) {
+
+		Btn_Shere->Caption = "공유시작";
+		IS_Shering = false;
+		Btn_Shere->Enabled = true;
+		Btn_MakeDir->Enabled = true;
+		Btn_DeleteDir->Enabled = true;
+		TV_ShereList->Enabled = true;
+		try {
+			HTTPS->Active = false;
+		}
+		catch (...) {
+		}
+
+	}
+	else {
+		Btn_Shere->Caption = "공유중지";
+		IS_Shering = true;
+
+		Btn_MakeDir->Enabled = false;
+		Btn_DeleteDir->Enabled = false;
+		TV_ShereList->Enabled = false;
+		Btn_Shere->Enabled = false;
+
+		if (HashingProce()) {
+			Btn_MakeDir->Enabled = false;
+			Btn_DeleteDir->Enabled = false;
+			TV_ShereList->Enabled = false;
+			Btn_Shere->Enabled = true;
+			Container->ClearSendingList();
+			try {
+				HTTPS->Active = true;
+			}
+			catch (...) {
+				ShowMessage("공유 서버를 시작 할 수 없습니다");
+				Btn_ShereClick(NULL);
+			}
+
+		}
+		else {
+			Btn_ShereClick(NULL);
+		}
+	}
+}
+
+bool __fastcall TMainForm::HashingProce() {
+
+	TotalFileSize = 0;
+	EndPos = 0;
+
+	for (int i = 0; i < TV_ShereList->Items->Count; i++) {
+		TTreeNode *RootNode = (TTreeNode*)TV_ShereList->Items->Item[i];
+		for (int j = 0; j < RootNode->Count; j++) {
+			TTreeNode *Node;
+			if (RootNode->Item[j] != NULL)
+				Node = RootNode->Item[j];
+			TShereItem *p = (TShereItem*)Node->Data;
+			TotalFileSize += p->FileSize;
+		}
+	}
+
+	if (TotalFileSize <= 0)
+		return false;
+
+	IS_HashCencel = false;
+
+	WorkTimer->Enabled = true;
+	LB_WorkName->Caption = "파일 확인중...";
+	WorkForWait(true);
+	PN_WorkProce->Visible = true;
+
+	for (int i = 0; i < TV_ShereList->Items->Count; i++) {
+		if (IS_HashCencel) {
+			PN_WorkProce->Visible = false;
+			WorkForWait(false);
+			WorkTimer->Enabled = false;
+			return false;
+		}
+
+		TTreeNode *RootNode = (TTreeNode*)TV_ShereList->Items->Item[i];
+		for (int j = 0; j < RootNode->Count; j++) {
+			TTreeNode *Node;
+			if (RootNode->Item[j] != NULL)
+				Node = RootNode->Item[j];
+			TShereItem *p = (TShereItem*)Node->Data;
+			LB_NowFileName->Caption = p->FileName;
+			if (p->MD5 != "")
+				EndPos += p->FileSize;
+			else {
+				p->MD5 = GetMD5HashProce(p->FileName);
+			}
+		}
+	}
+	PN_WorkProce->Visible = false;
+	WorkForWait(false);
+	WorkTimer->Enabled = false;
+	IS_HashCencel = false;
+	return true;
+}
+
+AnsiString __fastcall TMainForm::GetMD5HashProce(AnsiString FileName) {
+	// DWORD dwStatus = 0;
+	BOOL bResult;
+	HCRYPTPROV hProv = 0;
+	HCRYPTHASH hHash = 0;
+	HANDLE hFile = NULL;
+	BYTE rgbFile[BUFSIZE];
+	DWORD cbRead = 0;
+	BYTE rgbHash[MD5LEN];
+	DWORD cbHash = 0;
+
+	AnsiString MD5Hash = "";
+
+	hFile = CreateFileA(FileName.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, NULL);
+	if (INVALID_HANDLE_VALUE == hFile)
+		return "";
+
+	if (!CryptAcquireContext(&hProv, NULL, NULL, PROV_RSA_FULL, CRYPT_VERIFYCONTEXT))
+		return "";
+
+	if (!CryptCreateHash(hProv, CALG_MD5, 0, 0, &hHash)) {
+		CloseHandle(hFile);
+		CryptReleaseContext(hProv, 0);
+		return "";
+	}
+
+	try {
+		while (bResult = ReadFile(hFile, rgbFile, BUFSIZE, &cbRead, NULL)) {
+			if (IS_HashCencel) {
+
+				CryptReleaseContext(hProv, 0);
+				CryptDestroyHash(hHash);
+				CloseHandle(hFile);
+
+				PN_WorkProce->Visible = false;
+				WorkForWait(false);
+				WorkTimer->Enabled = false;
+				return "";
+			}
+
+			if (cbRead == 0)
+				break;
+			EndPos += cbRead;
+			if (!CryptHashData(hHash, rgbFile, cbRead, 0)) {
+				// dwStatus = GetLastError();
+				CryptReleaseContext(hProv, 0);
+				CryptDestroyHash(hHash);
+				CloseHandle(hFile);
+				return "";
+			}
+			Application->ProcessMessages();
+		}
+
+	}
+	catch (Exception &E) {
+		bResult = FALSE;
+	}
+
+	if (!bResult) {
+		CryptReleaseContext(hProv, 0);
+		CryptDestroyHash(hHash);
+		CloseHandle(hFile);
+		return "";
+	}
+
+	cbHash = MD5LEN;
+	if (CryptGetHashParam(hHash, HP_HASHVAL, rgbHash, &cbHash, 0)) {
+		AnsiString stTemp = "";
+		for (DWORD i = 0; i < cbHash; i++) {
+			MD5Hash = MD5Hash + stTemp.sprintf("%c%c", rgbDigits[rgbHash[i] >> 4], rgbDigits[rgbHash[i] & 0xf]);
+		}
+	}
+	else
+		MD5Hash = "";
+	MD5Hash = MD5Hash.UpperCase();
+	CryptDestroyHash(hHash);
+	CryptReleaseContext(hProv, 0);
+	CloseHandle(hFile);
+	if (MD5Hash != "")
+		this->Shere_ini->WriteString(INI_FILE_HASH_DONE_NAME, FileName, MD5Hash);
+	return MD5Hash;
+}
+
+void __fastcall TMainForm::TotalWorkProce() {
+	PB_Total->Position = (int)(((double)EndPos / (double)TotalFileSize) * 100);
+	LB_Percent->Caption = FormatFloat("00.00 %", (double)EndPos / (double)TotalFileSize * 100);
+}
+
+void __fastcall TMainForm::FormResize(TObject *Sender) {
+	if (this->Width < 800)
+		this->Width = 800;
+}
+
+void __fastcall TMainForm::HTTPSCommandGet(TIdContext *AContext, TIdHTTPRequestInfo *ARequestInfo,
+	TIdHTTPResponseInfo *AResponseInfo) {
+	if (ARequestInfo->Document == "/favicon.ico")
+		return;
+	Memo1->Lines->Add("UserAgent -> " + ARequestInfo->UserAgent);
+	Memo1->Lines->Add("Command -> " + ARequestInfo->Command);
+	Memo1->Lines->Add("Document -> " + ARequestInfo->Document);
+	Memo1->Lines->Add("Params -> " + ARequestInfo->Params->Text);
+	Memo1->Lines->Add("Ranges -> " + ARequestInfo->Range);
+	Memo1->Lines->Add("Host -> " + ARequestInfo->Host);
+
+   //	Memo1->Lines->Add("Ranges -> StartPos : " + IntToStr(ARequestInfo->Ranges[0]->Ranges->StartPos) + "  EndPos : " +
+	//	IntToStr(ARequestInfo->Ranges[0]->Ranges->EndPos));
+
+	if (ARequestInfo->UserAgent != DOWNLOADER_USER_AGENT_STRING) {
+
+		if (ARequestInfo->Document == "/download") {
+			SendFileToWeb(AResponseInfo, Container, ARequestInfo->Params);
+			return;
+		}
+
+		else if (ARequestInfo->Document == "/") {
+			SendWebBodyPage(AResponseInfo, Container);
+			return;
+		}
+		else {
+			SendRequestFileWeb(ARequestInfo->Document, AResponseInfo);
+			return;
+		}
+
+	}
+	else {
+		if (ARequestInfo->Command == "HEAD") {
+			SendFileSizeFromHTTPHeadInfo(AResponseInfo, Container, ARequestInfo->Params);
+			return;
+		}
+
+		if (ARequestInfo->Command == "GET" && ARequestInfo->Document == "/shere_list") {
+			SendShereList(AResponseInfo, Container);
+			return;
+		}
+
+		else if (ARequestInfo->Command == "GET" && ARequestInfo->Document == "/shere_item_list") {
+			SendShereItemList(AResponseInfo, Container, ARequestInfo->Params);
+			return;
+		}
+
+		else if (ARequestInfo->Command == "GET" && ARequestInfo->Document == "/download") {
+			// SendFileToClient(ARequestInfo->Range,AResponseInfo,Container,ARequestInfo->Params);
+			return;
+		}
+	}
+}
+
+void __fastcall TMainForm::WorkTimerTimer(TObject *Sender) {
+	TotalWorkProce();
+}
+
+void __fastcall TMainForm::Btn_HashCencelClick(TObject *Sender) {
+	IS_HashCencel = true;
+}

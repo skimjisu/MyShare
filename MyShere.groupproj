@@ -6,9 +6,6 @@
         <Projects Include="Server\MyShereServer.cbproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="..\ShereAppl\Server\Server.cbproj">
-            <Dependencies/>
-        </Projects>
     </ItemGroup>
     <ProjectExtensions>
         <Borland.Personality>Default.Personality.12</Borland.Personality>
@@ -26,23 +23,14 @@
     <Target Name="MyShereServer:Make">
         <MSBuild Projects="Server\MyShereServer.cbproj" Targets="Make"/>
     </Target>
-    <Target Name="Server">
-        <MSBuild Projects="..\ShereAppl\Server\Server.cbproj"/>
-    </Target>
-    <Target Name="Server:Clean">
-        <MSBuild Projects="..\ShereAppl\Server\Server.cbproj" Targets="Clean"/>
-    </Target>
-    <Target Name="Server:Make">
-        <MSBuild Projects="..\ShereAppl\Server\Server.cbproj" Targets="Make"/>
-    </Target>
     <Target Name="Build">
-        <CallTarget Targets="MyShereServer;Server"/>
+        <CallTarget Targets="MyShereServer"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="MyShereServer:Clean;Server:Clean"/>
+        <CallTarget Targets="MyShereServer:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="MyShereServer:Make;Server:Make"/>
+        <CallTarget Targets="MyShereServer:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
